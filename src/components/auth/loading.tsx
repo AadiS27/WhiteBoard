@@ -16,7 +16,7 @@ export const Loading = () => {
     // Simulate loading progress
     intervalRef.current = setInterval(() => {
         setProgress((prev) => {
-          const newProgress = prev + Math.random() * 7 + 3 // ⬅️ increase step size
+          const newProgress = prev + Math.random() * 7 + 3 
           if (newProgress >= 100) {
             clearInterval(intervalRef.current as NodeJS.Timeout)
             setIsComplete(true)
@@ -24,7 +24,7 @@ export const Loading = () => {
           }
           return newProgress
         })
-      }, 60) // ⬅️ increase frequency
+      }, 60)
       
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)
@@ -194,31 +194,7 @@ export const Loading = () => {
       </div>
 
       {/* Floating particles (hydration-safe) */}
-      <div className="absolute inset-0 pointer-events-none">
-        {particles.map((p, i) => (
-          <motion.div
-            key={i}
-            className="absolute rounded-full bg-white"
-            style={{
-              width: p.width,
-              height: p.height,
-              left: `${p.left}%`,
-              top: `${p.top}%`,
-            }}
-            animate={{
-              y: [0, -p.top - 50],
-              x: [0, (Math.random() - 0.5) * 50],
-              opacity: [0, 0.7, 0],
-            }}
-            transition={{
-              duration: p.duration,
-              repeat: Number.POSITIVE_INFINITY,
-              ease: "easeInOut",
-              delay: p.delay,
-            }}
-          />
-        ))}
-      </div>
+      
     </div>
   )
 }
