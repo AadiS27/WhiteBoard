@@ -1,5 +1,7 @@
+'use client'
 import { Plus } from "lucide-react"
 import { CreateOrganization } from "@clerk/nextjs"
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 import {Dialog,
     DialogTrigger,
@@ -22,9 +24,9 @@ export const NewButton = () => {
             </DialogTrigger>
             <DialogContent className="p-0 bg-white border-none overflow-hidden">
         <div className="rounded-md shadow-lg">
-          <DialogTitle className="text-black p-4">
+         <VisuallyHidden> <DialogTitle className="text-black p-4">
             Create Organization
-          </DialogTitle>
+          </DialogTitle></VisuallyHidden>
           <div className=" pl-9 pt-7 pb-7">
             <CreateOrganization />
           </div>
