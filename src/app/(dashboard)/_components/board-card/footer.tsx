@@ -20,7 +20,7 @@ export const Footer=({isFavourite,authorLabel,createdAtLabel,disabled,onClick}:F
             </p>
             <button disabled={disabled} onClick={onClick}
             className={cn(
-                "absolute top-2 right-2 p-1 rounded-full transition-colors duration-200 hover:text-yellow-500",
+                "absolute -top-1 right-2 p-1 rounded-full transition-colors duration-200 opacity-0 group-hover:opacity-100 hover:text-yellow-500",
                 disabled && "cursor-not-allowed opacity-50",
             )}>
                 <Star
