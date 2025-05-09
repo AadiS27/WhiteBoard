@@ -14,14 +14,16 @@ interface BoardListProps {
 }
 
 export const BoardList = ({favourites,search,organizationId}:BoardListProps) => {
-    const data=useQuery(api.boards.get,{orgId: organizationId});//TODO: fetch data from the server
+    const data=useQuery(api.boards.get,{orgId: organizationId, search: search || undefined,favourites:favourites||undefined});//TODO: fetch data from the server
 
 
     if(data===undefined){
         return(
-            <div className="flex overflow-auto p-6 bg-background items-center justify-center h-full flex-col">
-                <h1 className="text-2xl font-bold">Loading...</h1>
-            </div>
+           <div className="flex h-full flex-col items-center justify-center p-6 bg-background text-center">
+  <div className="animate-spin rounded-full h-10 w-10 border-4 border-muted border-t-primary mb-4"></div>
+  <h1 className="text-xl font-semibold text-muted-foreground">Loading your Search...</h1>
+</div>
+
         )
     }
     if(!data?.length &&search){
