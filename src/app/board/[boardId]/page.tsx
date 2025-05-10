@@ -8,8 +8,8 @@ interface BoardIdPageProps {
     };
 }
 
-const BoardIdPage = ({
-    params
+const BoardIdPage = async({
+     params
 }:BoardIdPageProps) => {
     return (
         <Room roomId={params.boardId} fallback={<LoadingScreen/>}>
