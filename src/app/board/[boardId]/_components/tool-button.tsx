@@ -19,7 +19,7 @@ return(
         <Button
         disabled={isDisabled}
         onClick={onClick}
-        variant={isActive ? "outline" : "ghost"}>
+        variant={isActive ? "board" : "ghost"}>
             <Icon/>
         </Button>
     </Hint>

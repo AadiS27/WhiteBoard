@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { Hint } from "@/components/hint";
 import { Separator } from "./seperator";
-import { useRenameModal } from "../../../../../store/use-rename-modal";
+import { useRenameModal } from "../../../../store/use-rename-modal";
 import { Action } from "@/components/action";
 import { Menu } from "lucide-react";
 
