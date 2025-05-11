@@ -26,7 +26,7 @@ return(
     transform:`translateX(${x}px) translateY(${y}px)`,
    }}
    height={50}
-   width={50}
+   width={name.length*10+24}
    className="relative drop-shadow-md">
    
     <MousePointer2
@@ -35,6 +35,12 @@ return(
          fill: `hsl(${(connectionId * 40) % 360}, 80%, 60%)`,
             color: `hsl(${(connectionId * 40) % 360}, 80%, 60%)`,
     }}/>
+    <div
+    className="absolute left-0 px-1.5 py-0.5 rounded-md text-xs text-white font-semibold"
+    style={{
+        backgroundColor: `hsl(${(connectionId * 40) % 360}, 80%, 60%)` }}>
+        {name}
+    </div>
    </foreignObject>
 )})
 
