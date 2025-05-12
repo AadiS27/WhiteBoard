@@ -7,20 +7,21 @@ import { nanoid } from "nanoid";
 import { Camera, CanvasMode, CanvasState, Color, LayerType, Point, Side, XYWH } from "@/types/canvas";
 import { useCanRedo, useCanUndo, useHistory, useMutation, useStorage } from "@liveblocks/react";
 import { CursorPresence } from "./cursor-presence";
-import { pointerEventToCanvasPoint, resizeBounds } from "@/lib/utils";
+import { findIntersectingLayersWithRectangle, pointerEventToCanvasPoint, resizeBounds } from "@/lib/utils";
 import { LiveObject } from "@liveblocks/client";
 import { LayerPreview } from "./layer-preview";
 import { useOthersMapped } from "@liveblocks/react/suspense";
 import { set } from "date-fns";
 import { SelectionBox } from "./selectionbox";
 import { SelectionTools } from "./selectiontools";
+import { update } from "../../../../../convex/board";
 
 interface CanvasProps {
     boardId: string;
 }
 
 const MAX_LAYERS=1000;
-
+const SELECTION_NET_SIZE=5;
 export const Canvas=({boardId}:CanvasProps)=>{
     const layerIds=useStorage((root)=>root.layersIds);
 
@@ -99,6 +100,43 @@ const unSelectLayers=useMutation((
             selection:[],
         },{addToHistory:true});
     };
+}
+,[])
+
+const updateSelectionNet=useMutation((
+    {storage,setMyPresence},
+    current:Point,
+    origin:Point
+)=>{
+    const layers=storage.get("layers").toImmutable();
+    setCanvasState({
+        mode:CanvasMode.SelectionNet,
+        current,
+        origin,
+    })
+
+    const ids=findIntersectingLayersWithRectangle(
+        layerIds ?? [],
+        layers,
+        origin,
+        current
+    )
+    setMyPresence({
+        selection:ids,
+    });
+},[layerIds]);
+
+const startMultiSelection=useCallback((
+    current:Point,
+    origin:Point
+)=>{
+    if(Math.abs(current.x-origin.x)+Math.abs(current.y-origin.y)>SELECTION_NET_SIZE){
+        console.log("start multi selection");
+        setCanvasState({
+            mode:CanvasMode.SelectionNet,
+            origin,
+            current})
+    }
 }
 ,[])
 
@@ -238,7 +276,13 @@ const onLayerPointerDown=useMutation((
         e.preventDefault();
     
         const current=pointerEventToCanvasPoint(e,camera);
-        if(canvasState.mode===CanvasMode.Translating){
+
+
+        if(canvasState.mode==CanvasMode.Pressing){
+            startMultiSelection(current,canvasState.origin);
+        }else if(canvasState.mode==CanvasMode.SelectionNet){
+          updateSelectionNet(current,canvasState.origin);
+        }else if(canvasState.mode===CanvasMode.Translating){
             translateSelectedLayers(current);
         
         }else if(canvasState.mode===CanvasMode.Resizing){
@@ -290,6 +334,14 @@ const onLayerPointerDown=useMutation((
                     ))}
                     <SelectionBox
                     onResizePointerDown={onResizePointerDown}/>
+                    {canvasState.mode==CanvasMode.SelectionNet&&canvasState.current!=null&&(
+                        <rect
+                        className="fill-blue-500/5 stroke-blue-500 stroke-1"
+                        x={Math.min(canvasState.origin.x,canvasState.current.x)}
+                        y={Math.min(canvasState.origin.y ,canvasState.current.y)}
+                        width={Math.abs(canvasState.origin.x-canvasState.current.x)}
+                        height={Math.abs(canvasState.origin.y-canvasState.current.y)}/>
+                    )}
                     <CursorPresence/>
                 </g>
             </svg>
