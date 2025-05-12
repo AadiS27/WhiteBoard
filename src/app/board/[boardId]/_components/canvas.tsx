@@ -4,14 +4,15 @@ import { Participants } from "./participants";
 import { Toolbar } from "./toolbar";
 import { useCallback, useMemo, useState } from "react";
 import { nanoid } from "nanoid";
-import { Camera, CanvasMode, CanvasState, Color, LayerType, Point } from "@/types/canvas";
+import { Camera, CanvasMode, CanvasState, Color, LayerType, Point, Side, XYWH } from "@/types/canvas";
 import { useCanRedo, useCanUndo, useHistory, useMutation, useStorage } from "@liveblocks/react";
 import { CursorPresence } from "./cursor-presence";
-import { pointerEventToCanvasPoint } from "@/lib/utils";
+import { pointerEventToCanvasPoint, resizeBounds } from "@/lib/utils";
 import { LiveObject } from "@liveblocks/client";
 import { LayerPreview } from "./layer-preview";
 import { useOthersMapped } from "@liveblocks/react/suspense";
 import { set } from "date-fns";
+import { SelectionBox } from "./selectionbox";
 
 interface CanvasProps {
     boardId: string;
@@ -25,12 +26,32 @@ export const Canvas=({boardId}:CanvasProps)=>{
       const [canvasState, setCanvasState] = useState<CanvasState>({
         mode: CanvasMode.None,
     });
+        const history=useHistory();
+    const canUndo=useCanUndo();
+    const canRedo=useCanRedo();
     const [lastUsedColor, setLastUsedColor] = useState<Color>({
         r: 0,
         g: 0,
         b: 0,
     });
     const [camera,setCamera]=useState<Camera>({x:0,y:0});
+
+
+    const onResizePointerDown=useCallback((
+        corner:Side,
+        initialBounds:XYWH
+    )=>{
+        history.pause();
+        setCanvasState({
+            mode:CanvasMode.Resizing,
+            corner,
+            initialBounds,
+        });
+
+    },[history])
+
+
+
 
     const onWheel=useCallback((e:React.WheelEvent)=>{
         setCamera((camera)=>({
@@ -39,9 +60,7 @@ export const Canvas=({boardId}:CanvasProps)=>{
         }))
         },[])
 
-    const history=useHistory();
-    const canUndo=useCanUndo();
-    const canRedo=useCanRedo();
+
 
 
     const insertLayer=useMutation(({storage,setMyPresence},layerType:LayerType.Ellipse|LayerType.Note|LayerType.Rectangle|LayerType.Text,position:Point)=>
@@ -70,6 +89,25 @@ export const Canvas=({boardId}:CanvasProps)=>{
         });
 
     },[lastUsedColor]);
+
+
+const resizeSelectedLayers=useMutation(({storage,self},point:Point)=>{
+    if(canvasState.mode!==CanvasMode.Resizing) return;
+    const bounds=resizeBounds(
+        canvasState.initialBounds,
+        canvasState.corner,
+        point)
+
+        const liveLayers=storage.get("layers");
+        const layer=liveLayers.get(self.presence.selection[0]);
+
+        if(layer){
+            layer.update(bounds);
+        }
+},[canvasState]);
+
+
+
 
     const onPointerUp=useMutation(({},e)=>{
         const point =pointerEventToCanvasPoint(e,camera);
@@ -139,9 +177,12 @@ const onLayerPointerDown=useMutation((
     
         const current=pointerEventToCanvasPoint(e,camera);
         
-        // console.log({current});
+        if(canvasState.mode===CanvasMode.Resizing){
+            resizeSelectedLayers(current);
+        }
+       
         setMyPresence({cursor:current});
-    },[])
+    },[canvasState,resizeSelectedLayers,camera])
 
     const onPointerLeave=useMutation(({setMyPresence})=>{
         setMyPresence({cursor:null});
@@ -177,6 +218,8 @@ const onLayerPointerDown=useMutation((
                         selectionColor={layerIdsToColorSelection[layerId]}
                         />
                     ))}
+                    <SelectionBox
+                    onResizePointerDown={onResizePointerDown}/>
                     <CursorPresence/>
                 </g>
             </svg>
