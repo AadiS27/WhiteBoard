@@ -57,7 +57,7 @@ export const SelectionTools = memo(
         }
 
         for(let i=indices.length-1;i>=0;i--){
-            liveLayersIds.move(indices[i],arr.length-1-i);
+            liveLayersIds.move(indices[i],arr.length-1-(indices.length -1-i));
         }
     },[selection])
 
