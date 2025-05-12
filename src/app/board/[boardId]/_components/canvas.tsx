@@ -13,6 +13,7 @@ import { LayerPreview } from "./layer-preview";
 import { useOthersMapped } from "@liveblocks/react/suspense";
 import { set } from "date-fns";
 import { SelectionBox } from "./selectionbox";
+import { SelectionTools } from "./selectiontools";
 
 interface CanvasProps {
     boardId: string;
@@ -90,6 +91,17 @@ export const Canvas=({boardId}:CanvasProps)=>{
 
     },[lastUsedColor]);
 
+const unSelectLayers=useMutation((
+    {self,setMyPresence}
+)=>{
+    if(self.presence.selection.length>0) {
+        setMyPresence({
+            selection:[],
+        },{addToHistory:true});
+    };
+}
+,[])
+
 
 const resizeSelectedLayers=useMutation(({storage,self},point:Point)=>{
     if(canvasState.mode!==CanvasMode.Resizing) return;
@@ -107,12 +119,49 @@ const resizeSelectedLayers=useMutation(({storage,self},point:Point)=>{
 },[canvasState]);
 
 
+const translateSelectedLayers=useMutation((
+    {storage,self},
+    point:Point
+)=>{
+    if(canvasState.mode!==CanvasMode.Translating) return;
+
+    const offset={
+        x:point.x-canvasState.current.x,
+        y:point.y-canvasState.current.y,
+    }
+    const liveLayers=storage.get("layers");
+
+    for(const id of self.presence.selection){
+        const layer=liveLayers.get(id);
+
+        if(layer){
+            layer.update({
+                x:layer.get("x")+offset.x,
+                y:layer.get("y")+offset.y,
+            });
+        }
+    }
+    setCanvasState({
+        mode:CanvasMode.Translating,
+        current:point,
+    });
+},[
+    canvasState
+])
+
 
 
     const onPointerUp=useMutation(({},e)=>{
         const point =pointerEventToCanvasPoint(e,camera);
 
-        if(canvasState.mode==CanvasMode.Inserting){
+        if(canvasState.mode==CanvasMode.None||canvasState.mode==CanvasMode.Pressing){
+            unSelectLayers();
+
+            setCanvasState({
+                mode:CanvasMode.None,
+            });
+            return;
+        }else if(canvasState.mode==CanvasMode.Inserting){
             insertLayer(canvasState.layerType,point);
         }
         else{
@@ -126,8 +175,21 @@ const resizeSelectedLayers=useMutation(({storage,self},point:Point)=>{
         camera,
         canvasState,
         history,
-        insertLayer
+        insertLayer,
+        unSelectLayers,
     ])
+
+const onPointerDown=useCallback((
+    e:React.PointerEvent 
+)=>{
+    const point=pointerEventToCanvasPoint(e,camera);
+    if(canvasState.mode==CanvasMode.Pencil||canvasState.mode==CanvasMode.Inserting){
+        return;
+    }
+
+    setCanvasState({origin:point,mode:CanvasMode.Pressing});
+},[camera,canvasState.mode,setCanvasState])
+
 
     const selection =useOthersMapped((other)=>
         other.presence.selection
@@ -176,13 +238,15 @@ const onLayerPointerDown=useMutation((
         e.preventDefault();
     
         const current=pointerEventToCanvasPoint(e,camera);
+        if(canvasState.mode===CanvasMode.Translating){
+            translateSelectedLayers(current);
         
-        if(canvasState.mode===CanvasMode.Resizing){
+        }else if(canvasState.mode===CanvasMode.Resizing){
             resizeSelectedLayers(current);
         }
        
         setMyPresence({cursor:current});
-    },[canvasState,resizeSelectedLayers,camera])
+    },[canvasState,resizeSelectedLayers,camera,translateSelectedLayers])
 
     const onPointerLeave=useMutation(({setMyPresence})=>{
         setMyPresence({cursor:null});
@@ -201,11 +265,17 @@ const onLayerPointerDown=useMutation((
             canUndo={canUndo}
             undo={history.undo}
             redo={history.redo}/>
+
+            <SelectionTools
+            camera={camera}
+            setLastUsedColor={setLastUsedColor}
+            />
             <svg className="h-[100vh] w-[100vw]"
             onWheel={onWheel}
             onPointerMove={onPointerMove}
             onPointerLeave={onPointerLeave}
-            onPointerUp={onPointerUp}>
+            onPointerUp={onPointerUp}
+            onPointerDown={onPointerDown}>
                 <g
                 style={{
                     transform: `translate(${camera.x}px, ${camera.y}px)`,
