@@ -1,4 +1,4 @@
-import { Camera, Color, Layer, Point, Side, XYWH } from "@/types/canvas"
+import { Camera, Color, Layer, LayerType, PathLayer, Point, Side, XYWH } from "@/types/canvas"
 import { clsx, type ClassValue } from "clsx"
 import React from "react"
 import { twMerge } from "tailwind-merge"
@@ -92,4 +92,61 @@ export function findIntersectingLayersWithRectangle(
 export function getContrastingColor(color:Color){
   const brightness=(color.r*299+color.g*587+color.b*114)/1000;
   return brightness>128?"#000":"#fff";
+}
+
+export function penPointsToPath(
+  points:number[][],
+  color:Color,
+):PathLayer{
+  if(points.length<2){
+    throw new Error("Not enough points to create a path");
+  }
+
+  let left=Number.POSITIVE_INFINITY;
+  let right=Number.NEGATIVE_INFINITY;
+  let top=Number.POSITIVE_INFINITY;
+  let bottom=Number.NEGATIVE_INFINITY;
+
+  for (const point of points){
+    const [x,y]=point;
+   if(x<left){
+    left=x;
+   }
+    if(x>right){
+      right=x;
+    }
+    if(y<top){
+      top=y;
+    }
+    if(y>bottom){
+      bottom=y;
+    }
+  }
+  return{
+    type:LayerType.Path,
+    x:left,
+    y:top,
+    width:right-left,
+    height:bottom-top,
+    fill:color,
+    points:points.map(([x,y,pressure])=>[x-left,y-top,pressure]),
+  }
+}
+
+
+export function getSvgPathFromStroke(stroke:number[][]){
+  if(!stroke.length){
+    return"";
+  }
+  
+  const d=stroke.reduce((acc,[x0,y0],i,arr)=>{
+    const [xi,yi]=arr[(i+1)%arr.length];
+    acc.push(x0,y0,(x0+xi)/2,(y0+yi)/2);
+    return acc;
+  },
+["M",...stroke[0], "Q"]
+);
+d.push("Z");
+  return d.join(" ");
+  
 }

@@ -23,6 +23,8 @@ export function Room({ children ,roomId,fallback}: RoomProps) {
       <RoomProvider id={roomId} initialPresence={{
         cursor:null,
         selection:[],
+        pencilDraft:null,
+        penColor:null,
       }}
         initialStorage={
         {

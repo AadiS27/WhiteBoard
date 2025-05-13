@@ -6,6 +6,9 @@ import { Rectangle } from "./rectangle";
 import { Ellipse } from "./ellipse";
 import { Text } from "./text";
 import { Note } from "./note";
+import { Path } from "./path";
+import { color } from "framer-motion";
+import { colorToHex } from "@/lib/utils";
 interface LayerPreviewProps {
     id: string;
     onLayerPointerDown: (e: React.PointerEvent,layerId:string) => void;
@@ -23,7 +26,17 @@ export const LayerPreview = memo(({
      }
 
      switch (layer.type) {
-
+        case LayerType.Path:
+            return (
+                <Path
+                key={id}
+                points={layer.points}
+                onPointerDown={(e)=>onLayerPointerDown(e,id)}
+                x={layer.x}
+                y={layer.y}
+                fill={layer.fill?colorToHex(layer.fill):"transparent"}
+                stroke={selectionColor || undefined}/>
+            )
                 case LayerType.Note:
             return(
                 <Note
@@ -60,7 +73,8 @@ export const LayerPreview = memo(({
                />
             );
         default:
-            console.warn("Unknown layer type",layer.type);
+            // Handle unknown layer type
+            console.error(`Unknown layer type: ${(layer as any).type}`);
             return null;
     }
     return (
