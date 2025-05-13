@@ -3,15 +3,16 @@ import { Room } from "@/components/room";
 import { LoadingScreen } from "./_components/canvas-loading";
 
 interface BoardIdPageProps {
-    params: {
-        boardId: string;
-    };
+  params: Promise<{
+    boardId: string;
+  }>;
 }
 
 const BoardIdPage = async({
      params
 }:BoardIdPageProps) => {
-     const boardId =  params.boardId;
+    const parames = await params;
+     const boardId =  parames.boardId;
     return (
         <Room roomId={boardId} fallback={<LoadingScreen/>}>
         <Canvas boardId={boardId}/>

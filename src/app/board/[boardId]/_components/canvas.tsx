@@ -287,7 +287,7 @@ const translateSelectedLayers=useMutation((
                 mode:CanvasMode.None,
             });
         }
-        history.resume
+        history.resume();
     },[
         camera,
         canvasState,

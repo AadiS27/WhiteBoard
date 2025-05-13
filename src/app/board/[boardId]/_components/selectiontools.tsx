@@ -8,7 +8,7 @@ import { ColorPicker } from "./color";
 import { useDeleteLayers } from "../../../../../hooks/use-delete";
 import { Hint } from "@/components/hint";
 import { Button } from "@/components/ui/button";
-import { BringToFront, SendToBack, Trash2, Trash2Icon } from "lucide-react";
+import { BringToFront, SendToBack, Trash2 } from "lucide-react";
 
 interface SelectionToolsProps {
   camera: Camera;
@@ -97,7 +97,6 @@ export const SelectionTools = memo(
             <SendToBack/>
             </Button>
            </Hint>
-           
         <Hint label="Delete" side="right">
         <Button variant="board" size='icon' onClick={deletLayers}>
             <Trash2/>

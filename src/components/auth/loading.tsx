@@ -8,7 +8,7 @@ export const Loading = () => {
   const [isComplete, setIsComplete] = useState(false)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
-  const [particles, setParticles] = useState<
+  const [, setParticles] = useState<
     { width: number; height: number; left: number; top: number; duration: number; delay: number }[]
   >([])
 

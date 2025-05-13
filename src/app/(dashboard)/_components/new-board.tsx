@@ -9,7 +9,6 @@ import { useApiMutation } from "../../../../hooks/use-api-mutation"
 import { api } from "../../../../convex/_generated/api"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useRouter } from "next/navigation"
 
 interface NewBoardButtonProps {
   orgId: string
@@ -18,7 +17,7 @@ interface NewBoardButtonProps {
 }
 
 export const NewBoardButton = ({ orgId, disabled, className }: NewBoardButtonProps) => {
-  const router=useRouter();
+
   const { mutate, pending } = useApiMutation(api.board.create)
   const [isHovered, setIsHovered] = useState(false)
 

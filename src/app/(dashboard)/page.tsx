@@ -16,7 +16,6 @@ const DashboardPage = () => {
     <div className="h-screen flex flex-col">
       <div className="flex-1 overflow-auto p-6 bg-background">
       
-          {/* {JSON.stringify({ search, favourites })} */}
         
         {!organization ? (
           <EmptyOrg />

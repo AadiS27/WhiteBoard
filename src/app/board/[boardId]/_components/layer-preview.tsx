@@ -7,7 +7,6 @@ import { Ellipse } from "./ellipse";
 import { Text } from "./text";
 import { Note } from "./note";
 import { Path } from "./path";
-import { color } from "framer-motion";
 import { colorToHex } from "@/lib/utils";
 interface LayerPreviewProps {
     id: string;
@@ -74,15 +73,9 @@ export const LayerPreview = memo(({
             );
         default:
             // Handle unknown layer type
-            console.error(`Unknown layer type: ${(layer as any).type}`);
+            console.error(`Unknown layer type`);
             return null;
     }
-    return (
-       
-       <div>
-
-       </div>
-    );
 })
 
 LayerPreview.displayName = "LayerPreview";

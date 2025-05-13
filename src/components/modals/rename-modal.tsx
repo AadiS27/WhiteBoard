@@ -1,4 +1,4 @@
-import { FormEvent, FormEventHandler, useEffect, useState } from "react";
+import {  FormEventHandler, useEffect, useState } from "react";
 import { useRenameModal } from "../../store/use-rename-modal";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 import { Input } from "../ui/input";

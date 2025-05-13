@@ -3,7 +3,6 @@
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 
-import { useRouter } from "next/navigation"
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@radix-ui/react-dialog"
 import {  CirclePlus } from "lucide-react"
 
@@ -13,7 +12,6 @@ import { CreateOrganization } from "@clerk/clerk-react"
 
 
 export const EmptyOrg = () => {
-  const router = useRouter()
 
   return (
     <div className="h-full flex flex-col items-center justify-center p-6">
@@ -25,7 +23,7 @@ export const EmptyOrg = () => {
         <div className="space-y-2">
           <h3 className="text-xl font-semibold tracking-tight">Welcome to Boardly</h3>
           <p className="text-muted-foreground">
-            There's nothing here. Get
+            There`&apos;`s nothing here. Get
             started by creating a new Organization.
           </p>
         </div>
