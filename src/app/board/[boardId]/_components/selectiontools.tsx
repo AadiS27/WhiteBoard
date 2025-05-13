@@ -97,6 +97,7 @@ export const SelectionTools = memo(
             <SendToBack/>
             </Button>
            </Hint>
+           
         <Hint label="Delete" side="right">
         <Button variant="board" size='icon' onClick={deletLayers}>
             <Trash2/>

@@ -2,7 +2,7 @@
 import { Info } from "./info";
 import { Participants } from "./participants";
 import { Toolbar } from "./toolbar";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { nanoid } from "nanoid";
 import { Camera, CanvasMode, CanvasState, Color, LayerType, Point, Side, XYWH } from "@/types/canvas";
 import { useCanRedo, useCanUndo, useHistory, useMutation, useStorage } from "@liveblocks/react";
@@ -11,11 +11,12 @@ import { colorToHex, findIntersectingLayersWithRectangle, penPointsToPath, point
 import { LiveObject } from "@liveblocks/client";
 import { LayerPreview } from "./layer-preview";
 import { useOthersMapped, useSelf } from "@liveblocks/react/suspense";
-import { set } from "date-fns";
+
 import { SelectionBox } from "./selectionbox";
 import { SelectionTools } from "./selectiontools";
-import { update } from "../../../../../convex/board";
+
 import { Path } from "./path";
+import { useDeleteLayers } from "../../../../../hooks/use-delete";
 
 interface CanvasProps {
     boardId: string;
@@ -41,7 +42,28 @@ export const Canvas=({boardId}:CanvasProps)=>{
     });
     const [camera,setCamera]=useState<Camera>({x:0,y:0});
 
+const deleteLayers=useDeleteLayers();
 
+useEffect(()=>{
+    function onKeyDown(e:KeyboardEvent){
+        switch(e.key){
+            case "z":
+                if(e.ctrlKey||e.metaKey){
+                    if(e.shiftKey){
+                        history.redo();
+                    }else{
+                        history.undo();
+                    }
+                }
+                break;
+        }
+    }
+    document.addEventListener("keydown",onKeyDown);
+
+    return ()=>{
+        document.removeEventListener("keydown",onKeyDown);
+    }
+},[deleteLayers,history])
     const onResizePointerDown=useCallback((
         corner:Side,
         initialBounds:XYWH
