@@ -88,7 +88,12 @@ export type CanvasState =
  | {
         mode:CanvasMode.None;
     }
-|{
+|
+{
+    mode: CanvasMode.Eraser;  // Add this new state
+}
+|
+{
     mode:CanvasMode.SelectionNet;
     origin:Point;
     current?:Point;
@@ -122,7 +127,8 @@ SelectionNet,
 Translating,
 Inserting,
 Resizing,
-Pencil
+Pencil,
+Eraser
 }
 
 export type Layer=RectangleLayer|EllipseLayer|PathLayer|TextLayer|NoteLayer;

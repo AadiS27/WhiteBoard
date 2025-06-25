@@ -1,6 +1,6 @@
 'use client';
 
-import { Circle, MousePointer2, Pen, Redo2, Square, StickyNote, Type, Undo2 } from "lucide-react"
+import { Circle, Eraser, MousePointer2, Pen, Redo2, Square, StickyNote, Type, Undo2 } from "lucide-react"
 import { ToolButton } from "./tool-button"
 import { CanvasMode, CanvasState, LayerType } from "@/types/canvas";
 
@@ -92,6 +92,16 @@ return(
                 canvasState.mode === CanvasMode.Pencil
             }
             />
+            <ToolButton
+        label="Eraser"
+        icon={Eraser} // Import from lucide-react or your icon library
+        onClick={() => {
+            setCanvasState({
+                mode: CanvasMode.Eraser
+            });
+        }}
+        isActive={canvasState.mode === CanvasMode.Eraser}
+    />
         </div>
         <div className="bg-white rounded-md p-2 flex gap-x-2 items-center shadow-md ml-2">
         <ToolButton

@@ -40,7 +40,7 @@ export const Canvas=({boardId}:CanvasProps)=>{
         g: 0,
         b: 0,
     });
-    const [camera,setCamera]=useState<Camera>({x:0,y:0});
+    const [camera,setCamera] = useState<Camera>({x:0,y:0});
 
 const deleteLayers=useDeleteLayers();
 
@@ -265,7 +265,38 @@ const translateSelectedLayers=useMutation((
 ])
 
 
+const layers = useStorage((root) => root.layers);
+const selfCursor = useSelf((self) => self.presence.cursor);
 
+const deleteLayer = useMutation(({ storage }, layerId: string) => {
+    const liveLayers = storage.get("layers");
+    liveLayers.delete(layerId);
+}, []);
+
+const findLayerAtPoint = useCallback((point: Point) => {
+    // Get all layers
+    const allLayers = Array.from((layers || new Map()).entries()).map(([id, layer]) => ({
+        id,
+        layer,
+    }));
+    
+    // Check in reverse order (top to bottom)
+    for (let i = allLayers.length - 1; i >= 0; i--) {
+        const { id, layer } = allLayers[i];
+        
+        // Simple bounding box check
+        if (
+            point.x >= layer.x &&
+            point.x <= layer.x + layer.width &&
+            point.y >= layer.y &&
+            point.y <= layer.y + layer.height
+        ) {
+            return id;
+        }
+    }
+    
+    return null;
+}, [layers]);
     const onPointerUp=useMutation(({},e)=>{
         const point =pointerEventToCanvasPoint(e,camera);
 
@@ -308,9 +339,16 @@ const onPointerDown=useCallback((
         startDrawing(point,e.pressure);
         return;
     }
+     if (canvasState.mode === CanvasMode.Eraser) {
+        const layerId = findLayerAtPoint(point);
+        if (layerId) {
+            deleteLayer(layerId);
+        }
+        return;
+    }
 
     setCanvasState({origin:point,mode:CanvasMode.Pressing});
-},[camera,canvasState.mode,setCanvasState,startDrawing])
+},[camera,canvasState.mode,setCanvasState,startDrawing,findLayerAtPoint,deleteLayer]);
 
 
     const selection =useOthersMapped((other)=>
@@ -373,10 +411,17 @@ const onLayerPointerDown=useMutation((
             resizeSelectedLayers(current);
         } else if(canvasState.mode===CanvasMode.Pencil){
             continueDrawing(current,e);
+        }else if(canvasState.mode === CanvasMode.Eraser){
+                if (e.buttons === 1) { 
+            const layerId = findLayerAtPoint(current);
+            if (layerId) {
+                deleteLayer(layerId);
+            }
+        }
         }
        
         setMyPresence({cursor:current});
-    },[canvasState,resizeSelectedLayers,camera,translateSelectedLayers,continueDrawing,updateSelectionNet,startMultiSelection])
+    },[canvasState,resizeSelectedLayers,camera,translateSelectedLayers,continueDrawing,updateSelectionNet,startMultiSelection,findLayerAtPoint,deleteLayer]);
 
     const onPointerLeave=useMutation(({setMyPresence})=>{
         setMyPresence({cursor:null});
@@ -400,27 +445,50 @@ const onLayerPointerDown=useMutation((
             camera={camera}
             setLastUsedColor={setLastUsedColor}
             />
-            <svg className="h-[100vh] w-[100vw]"
-            onWheel={onWheel}
-            onPointerMove={onPointerMove}
-            onPointerLeave={onPointerLeave}
-            onPointerUp={onPointerUp}
-            onPointerDown={onPointerDown}>
-                <g
-                style={{
-                    transform: `translate(${camera.x}px, ${camera.y}px)`,
-                }}>
-                    {layerIds?.map((layerId)=>(
-                        <LayerPreview
-                        key={layerId}
-                        id={layerId}
-                        onLayerPointerDown={onLayerPointerDown}
-                        selectionColor={layerIdsToColorSelection[layerId]}
-                        />
-                    ))}
-                    <SelectionBox
-                    onResizePointerDown={onResizePointerDown}/>
-                    {canvasState.mode==CanvasMode.SelectionNet&&canvasState.current!=null&&(
+            <svg 
+    className={`h-[100vh] w-[100vw] ${
+        canvasState.mode === CanvasMode.Eraser ? "cursor-none" : ""
+    }`}
+    onWheel={onWheel}
+    onPointerMove={onPointerMove}
+    onPointerLeave={onPointerLeave}
+    onPointerUp={onPointerUp}
+    onPointerDown={onPointerDown}>
+    <g
+    style={{
+        transform: `translate(${camera.x}px, ${camera.y}px)`,
+    }}>
+        {/* Your existing layers */}
+        {layerIds?.map((layerId)=>(
+            <LayerPreview
+            key={layerId}
+            id={layerId}
+            onLayerPointerDown={onLayerPointerDown}
+            selectionColor={layerIdsToColorSelection[layerId]}
+            />
+        ))}
+        {/* Eraser indicator */}
+        {(() => {
+            // Use the selfCursor from outside the callback
+            return canvasState.mode === CanvasMode.Eraser && selfCursor && (
+                <rect
+                    x={selfCursor.x - 10}
+                    y={selfCursor.y - 10}
+                    width={20}
+                    height={20}
+                    fill="rgba(255, 255, 255, 0.5)"
+                    stroke="black"
+                    strokeWidth={1}
+                    pointerEvents="none"
+                />
+            );
+        })()}
+    
+        
+        {/* Rest of your SVG content */}
+        <SelectionBox
+        onResizePointerDown={onResizePointerDown}/>
+        {canvasState.mode==CanvasMode.SelectionNet&&canvasState.current!=null&&(
                         <rect
                         className="fill-blue-500/5 stroke-blue-500 stroke-1"
                         x={Math.min(canvasState.origin.x,canvasState.current.x)}
@@ -436,8 +504,8 @@ const onLayerPointerDown=useMutation((
                         x={0}
                         y={0}/>
                     )}
-                </g>
-            </svg>
+    </g>
+</svg>
         </main>
     );
 }
